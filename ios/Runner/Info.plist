@@ -47,5 +47,19 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your location is used to find restaurants near you. It is never stored or shared.</string>
+	<!-- Google Sign-In: replace REVERSED_CLIENT_ID with the value of the same
+	     key in GoogleService-Info.plist once the iOS app is registered in
+	     Firebase. See ios/FIREBASE_SETUP.md. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>REVERSED_CLIENT_ID</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

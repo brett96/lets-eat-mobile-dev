@@ -48,3 +48,6 @@ app.*.map.json
 key.properties
 *.jks
 *.keystore
+
+# iOS Firebase config (add manually in Xcode; keep out of public repos)
+ios/Runner/GoogleService-Info.plist

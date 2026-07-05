@@ -1,0 +1,22 @@
+{
+  "name": "lets-eat-functions",
+  "description": "Cloud Functions for Let's Eat! push notifications",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint --ext .ts src",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "private": true
+}

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../account/account_screen.dart';
 import '../delivery/delivery_screen.dart';
 import '../friends/friends_screen.dart';
+import '../history/history_screen.dart';
 import '../groups/groups_screen.dart';
 import '../preferences/preferences_screen.dart';
 import '../saved/saved_screen.dart';
@@ -78,6 +79,14 @@ class HomeScreen extends StatelessWidget {
             subtitle: 'Your favorites, all in one place.',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const SavedScreen()),
+            ),
+          ),
+          _HomeCard(
+            icon: Icons.history,
+            title: 'History',
+            subtitle: 'Restaurants suggested to you before.',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const HistoryScreen()),
             ),
           ),
           _HomeCard(
