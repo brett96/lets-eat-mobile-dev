@@ -90,3 +90,16 @@ lets-eat-mobile-dev/
 ## 8. Modernization plan
 
 See **REFACTOR_PLAN.md** for the phased plan to bring the app to current Flutter/Dart, Firebase, and store requirements.
+
+---
+
+## 9. Modernization status (July 2026)
+
+Phases 1–2 and the core of Phase 3 are **done** on branch `claude/flutter-app-modernization-6yvjsr`:
+
+- Fresh Flutter 3.32 / Dart 3.8 project shells (`android/` on AGP 8 + Gradle 8, `ios/` at iOS 12+ template). App ID remains `lets_eat.project`; Maps key injected via `key.properties`/`MAPS_API_KEY` env (never in the manifest); release signing reads `key.properties` (git-ignored).
+- New null-safe `lib/` with the target layout: `models/` (`Restaurant`), `services/` (`YelpService` — the only Yelp API code, key via `--dart-define=YELP_API_KEY`; `AuthService`; `UserService`; `LocationService`), `features/` (auth, home, search, suggestion, restaurant details w/ map, saved, account incl. account deletion), wired with `provider`.
+- 10 unit tests (`flutter test`) and `flutter analyze` clean; new `flutter.yml` CI replaces the broken Dart workflow.
+- The entire 2020 codebase is preserved unmodified under `legacy/` (excluded from analysis) for reference during the remaining port.
+
+**Remaining (Phase 3+):** friends, groups (create/view/vote), group chat, delivery hand-off, Yelp preference profiles, history UI, push notifications; `flutterfire configure` for a real iOS Firebase app; icons via `flutter_launcher_icons`; store-readiness items in REFACTOR_PLAN.md Phase 5. And before release: rotate the exposed Yelp + Maps keys (legacy copies remain in git history).
