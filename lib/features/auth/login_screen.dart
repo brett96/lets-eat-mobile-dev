@@ -142,6 +142,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? null
                       : () => _run(() => context.read<AuthService>().signInWithGoogle()),
                 ),
+                // Apple requires Sign in with Apple wherever Google Sign-In is
+                // offered — but only Apple platforms support it.
+                if (Theme.of(context).platform == TargetPlatform.iOS ||
+                    Theme.of(context).platform == TargetPlatform.macOS)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.apple),
+                      label: const Text('Continue with Apple'),
+                      onPressed: _busy
+                          ? null
+                          : () => _run(
+                              () => context.read<AuthService>().signInWithApple()),
+                    ),
+                  ),
                 TextButton(
                   onPressed: _busy ? null : () => setState(() => _isSignUp = !_isSignUp),
                   child: Text(_isSignUp

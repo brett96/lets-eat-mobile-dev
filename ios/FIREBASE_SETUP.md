@@ -45,10 +45,15 @@ no Dart changes required.
    target in Xcode. Without this, `NotificationService` silently no-ops on iOS
    (by design — see its try/catch).
 
-6. **Sign in with Apple (required by App Store review).** Because the app
-   offers Google Sign-In, Apple requires Sign in with Apple as an option too.
-   Add the *Sign in with Apple* capability and implement it via
-   `sign_in_with_apple` before submitting. Tracked in REFACTOR_PLAN.md Phase 5.
+6. **Sign in with Apple.** The feature is **implemented in code**
+   (`AuthService.signInWithApple`, button on the login screen for Apple
+   platforms). Two setup steps remain, both requiring the Apple Developer
+   account:
+   - In Xcode, add the **Sign in with Apple** capability to the Runner target.
+   - In the Apple Developer portal, enable *Sign in with Apple* for the App ID,
+     and in the Firebase console enable the **Apple** sign-in provider
+     (Authentication → Sign-in method), supplying the Services ID / key as
+     prompted.
 
 ## Build
 

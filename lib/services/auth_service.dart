@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 /// All authentication flows: email/password, Google Sign-In (with the
 /// legacy account-merge behavior), and the account-deletion path that the
@@ -60,6 +65,54 @@ class AuthService {
     await _ensureUserDocument(user, username: user.displayName ?? user.email ?? 'user');
     return user;
   }
+
+  /// Sign in with Apple. Required by App Store review whenever third-party
+  /// sign-in (Google) is offered. Uses the nonce flow so Firebase can verify
+  /// the Apple identity token. Apple only returns the user's name on the very
+  /// first authorization, so we capture it then.
+  Future<User> signInWithApple() async {
+    final rawNonce = _generateNonce();
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: _sha256(rawNonce),
+    );
+    final oauthCredential = OAuthProvider('apple.com').credential(
+      idToken: appleCredential.identityToken,
+      rawNonce: rawNonce,
+    );
+    final userCredential = await _auth.signInWithCredential(oauthCredential);
+    final user = userCredential.user!;
+
+    final appleName = [appleCredential.givenName, appleCredential.familyName]
+        .whereType<String>()
+        .join(' ')
+        .trim();
+    if (appleName.isNotEmpty &&
+        (user.displayName == null || user.displayName!.isEmpty)) {
+      await user.updateDisplayName(appleName);
+    }
+    await _ensureUserDocument(
+      user,
+      username: user.displayName?.isNotEmpty == true
+          ? user.displayName!
+          : (user.email ?? 'user'),
+    );
+    return user;
+  }
+
+  static String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
+        .join();
+  }
+
+  static String _sha256(String input) =>
+      sha256.convert(utf8.encode(input)).toString();
 
   Future<void> sendPasswordReset(String email) =>
       _auth.sendPasswordResetEmail(email: email);
