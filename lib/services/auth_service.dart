@@ -75,7 +75,12 @@ class AuthService {
   Future<void> deleteAccount() async {
     final user = _auth.currentUser;
     if (user == null) return;
-    await _firestore.collection('users').doc(user.uid).delete();
+    final userDoc = _firestore.collection('users').doc(user.uid);
+    final username = (await userDoc.get()).data()?['username'] as String?;
+    if (username != null) {
+      await _firestore.collection('usernames').doc(username).delete();
+    }
+    await userDoc.delete();
     await user.delete();
   }
 
@@ -88,6 +93,12 @@ class AuthService {
         'email': user.email,
         'createdAt': FieldValue.serverTimestamp(),
       });
+      // Public username → uid mapping so friends can be looked up without
+      // exposing private user documents.
+      await _firestore
+          .collection('usernames')
+          .doc(username)
+          .set({'uid': user.uid});
     }
   }
 }

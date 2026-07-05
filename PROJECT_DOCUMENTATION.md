@@ -99,7 +99,19 @@ Phases 1–2 and the core of Phase 3 are **done** on branch `claude/flutter-app-
 
 - Fresh Flutter 3.32 / Dart 3.8 project shells (`android/` on AGP 8 + Gradle 8, `ios/` at iOS 12+ template). App ID remains `lets_eat.project`; Maps key injected via `key.properties`/`MAPS_API_KEY` env (never in the manifest); release signing reads `key.properties` (git-ignored).
 - New null-safe `lib/` with the target layout: `models/` (`Restaurant`), `services/` (`YelpService` — the only Yelp API code, key via `--dart-define=YELP_API_KEY`; `AuthService`; `UserService`; `LocationService`), `features/` (auth, home, search, suggestion, restaurant details w/ map, saved, account incl. account deletion), wired with `provider`.
-- 10 unit tests (`flutter test`) and `flutter analyze` clean; new `flutter.yml` CI replaces the broken Dart workflow.
+- 19 unit tests (`flutter test`) and `flutter analyze` clean; new `flutter.yml` CI replaces the broken Dart workflow.
 - The entire 2020 codebase is preserved unmodified under `legacy/` (excluded from analysis) for reference during the remaining port.
 
-**Remaining (Phase 3+):** friends, groups (create/view/vote), group chat, delivery hand-off, Yelp preference profiles, history UI, push notifications; `flutterfire configure` for a real iOS Firebase app; icons via `flutter_launcher_icons`; store-readiness items in REFACTOR_PLAN.md Phase 5. And before release: rotate the exposed Yelp + Maps keys (legacy copies remain in git history).
+### Second pass — remaining feature port (also on this branch)
+
+All the legacy social/utility features have now been ported to the new architecture on top of a clean, **UID-based Firestore model** (the legacy schema keyed everything by display name via pointer documents):
+
+- **Preferences** — `models/user_preferences.dart` + `UserService` methods; a `PreferencesScreen` for cuisine/dietary/price selection. Preferences are stored on the user doc as raw selections (not pre-built URL fragments) and are automatically applied to Instant Suggestion via `YelpService`.
+- **Friends** — reciprocal friend edges under `users/{uid}/friends`, looked up through a public `usernames/{username} → uid` directory (so friend search never exposes private user docs). `FriendsScreen` adds by username and removes.
+- **Groups + voting** — `models/group.dart` + `GroupService`; `GroupsScreen` (list/create) and `GroupDetailScreen` (members, pooled cuisines, "generate candidates & vote", tallied winner promoted to the group result, leave/delete/reset). Vote-tallying logic is pure and unit-tested.
+- **Group chat** — `models/chat_message.dart` + a `groups/{id}/messages` subcollection ordered by server timestamp (replaces the legacy `"name:    text"` string array); `GroupChatScreen` with a live bubble UI.
+- **Delivery** — `YelpService.deliverySearch` (`/v3/transactions/delivery/search`) + `DeliveryScreen` with Yelp order hand-off via `url_launcher`.
+- **Push notifications** — `firebase_messaging` + `NotificationService` (permission request, FCM token registered to the user doc on sign-in, foreground stream). Android 13 `POST_NOTIFICATIONS` permission added.
+- **`firestore.rules`** — committed to the repo: per-user private data, member-scoped group read/write, message authoring checks, and the public username directory. Deploy with `firebase deploy --only firestore:rules`.
+
+**Remaining:** history UI screen (data layer + `addToHistory` already wired via Instant Suggestion); `flutterfire configure` for a real iOS Firebase app + `GoogleService-Info.plist`; adaptive/monochrome icons via `flutter_launcher_icons`; a Cloud Function to send the group-chat/vote push notifications (client receive side is done); store-readiness items in REFACTOR_PLAN.md Phase 5. And before release: rotate the exposed Yelp + Maps keys (legacy copies remain in git history), and audit `firestore.rules` against real data.

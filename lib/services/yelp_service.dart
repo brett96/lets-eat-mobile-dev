@@ -59,6 +59,33 @@ class YelpService {
         .toList();
   }
 
+  /// Restaurants near [latitude]/[longitude] that support Yelp delivery.
+  Future<List<Restaurant>> deliverySearch({
+    required double latitude,
+    required double longitude,
+    int limit = 50,
+  }) async {
+    if (_apiKey.isEmpty) {
+      throw StateError(
+        'Yelp API key missing. Build with --dart-define=YELP_API_KEY=...',
+      );
+    }
+    final uri = Uri.https(_base, '/v3/transactions/delivery/search', {
+      'latitude': '$latitude',
+      'longitude': '$longitude',
+      'limit': '$limit',
+    });
+    final response = await _client.get(uri, headers: _headers);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw YelpException(response.statusCode, response.body);
+    }
+    final map = json.decode(response.body) as Map<String, dynamic>;
+    final businesses = map['businesses'] as List<dynamic>? ?? const [];
+    return businesses
+        .map((b) => Restaurant.fromJson(b as Map<String, dynamic>))
+        .toList();
+  }
+
   /// Fetch full details for a single business by Yelp id.
   Future<Restaurant> getBusiness(String id) async {
     final uri = Uri.https(_base, '/v3/businesses/$id');

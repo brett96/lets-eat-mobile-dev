@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'features/auth/login_screen.dart';
 import 'features/home/home_screen.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
 
 class LetsEatApp extends StatelessWidget {
   const LetsEatApp({super.key});
@@ -33,7 +34,11 @@ class _AuthGate extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-        return snapshot.hasData ? const HomeScreen() : const LoginScreen();
+        final user = snapshot.data;
+        if (user == null) return const LoginScreen();
+        // Register for push notifications once we know who the user is.
+        context.read<NotificationService>().registerForUser(user.uid);
+        return const HomeScreen();
       },
     );
   }

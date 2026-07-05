@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../account/account_screen.dart';
+import '../delivery/delivery_screen.dart';
+import '../friends/friends_screen.dart';
+import '../groups/groups_screen.dart';
+import '../preferences/preferences_screen.dart';
 import '../saved/saved_screen.dart';
 import '../search/search_screen.dart';
 import '../suggestion/instant_suggestion_screen.dart';
@@ -45,11 +49,43 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           _HomeCard(
+            icon: Icons.delivery_dining,
+            title: 'Delivery',
+            subtitle: 'Find spots that deliver to you.',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const DeliveryScreen()),
+            ),
+          ),
+          _HomeCard(
+            icon: Icons.groups,
+            title: 'Groups',
+            subtitle: 'Decide together — pool cuisines, vote, and chat.',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const GroupsScreen()),
+            ),
+          ),
+          _HomeCard(
+            icon: Icons.people,
+            title: 'Friends',
+            subtitle: 'Add friends by username.',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const FriendsScreen()),
+            ),
+          ),
+          _HomeCard(
             icon: Icons.favorite,
             title: 'Saved Restaurants',
             subtitle: 'Your favorites, all in one place.',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const SavedScreen()),
+            ),
+          ),
+          _HomeCard(
+            icon: Icons.tune,
+            title: 'My Preferences',
+            subtitle: 'Set default cuisines, dietary needs, and price.',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const PreferencesScreen()),
             ),
           ),
         ],

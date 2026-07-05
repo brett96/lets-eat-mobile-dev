@@ -1,0 +1,58 @@
+rules_version = '2';
+
+// Security rules matching the modernized, UID-based data model.
+// Deploy with: firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // A user document and its subcollections (savedRestaurants, history,
+    // friends) are private to that user.
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // A user may create the reciprocal friend edge on someone else's doc,
+      // but only the single document keyed by their own uid.
+      match /friends/{friendId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if request.auth != null &&
+          (request.auth.uid == userId || request.auth.uid == friendId);
+      }
+
+      match /{sub=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Public username → uid directory for friend lookups. Any signed-in user
+    // may read it; a user may only claim the mapping that points to their uid.
+    match /usernames/{username} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        request.resource.data.uid == request.auth.uid;
+    }
+
+    // Groups: readable/writable by members. Any signed-in user may create a
+    // group (they must include themselves as the owner and a member).
+    match /groups/{groupId} {
+      allow read: if request.auth != null &&
+        request.auth.uid in resource.data.memberUids;
+      allow create: if request.auth != null &&
+        request.auth.uid == request.resource.data.ownerUid &&
+        request.auth.uid in request.resource.data.memberUids;
+      allow update: if request.auth != null &&
+        (request.auth.uid in resource.data.memberUids ||
+         request.auth.uid in request.resource.data.memberUids);
+      allow delete: if request.auth != null &&
+        request.auth.uid == resource.data.ownerUid;
+
+      // Chat messages: any group member can read; a member can create a
+      // message authored as themselves.
+      match /messages/{messageId} {
+        allow read: if request.auth != null &&
+          request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberUids;
+        allow create: if request.auth != null &&
+          request.auth.uid == request.resource.data.senderUid;
+      }
+    }
+  }
+}

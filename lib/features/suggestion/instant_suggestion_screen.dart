@@ -33,11 +33,19 @@ class _InstantSuggestionScreenState extends State<InstantSuggestionScreen> {
     setState(() {
       _suggestion = () async {
         final position = await location.getCurrentPosition();
+        final uid = auth.currentUser?.uid;
+        // Respect the user's saved preferences, if any.
+        final prefs = uid == null
+            ? null
+            : await users.getPreferences(uid);
         final pick = await yelp.suggestRandom(
           latitude: position.latitude,
           longitude: position.longitude,
+          categories: (prefs == null || prefs.allCategories.isEmpty)
+              ? null
+              : prefs.allCategories,
+          price: prefs?.priceParam,
         );
-        final uid = auth.currentUser?.uid;
         if (pick != null && uid != null) {
           await users.addToHistory(uid, pick);
         }
